@@ -44,6 +44,14 @@ Small ecommerce app: **login → view products → add to cart → checkout → 
 | `npx prisma studio` | Open DB in browser |
 | `npx prisma db push` | Apply schema to DB (no migrations) |
 
+## Auth
+
+- **Sign up:** `POST /api/auth/signup` with body `{ "email", "password", "name?" }`. Creates user with hashed password.
+- **Sign in / session:** NextAuth at `/api/auth/*` (signin, callback, session, signout). Use Credentials with the same email/password.
+- **Protected APIs:** Cart, checkout, and orders use `getSession()` and return `401` if not logged in.
+
+To test signup: `curl -X POST http://localhost:3000/api/auth/signup -H "Content-Type: application/json" -d '{"email":"you@example.com","password":"password123","name":"You"}'`
+
 ## Create the repo (one-time)
 
 From the project root, run:

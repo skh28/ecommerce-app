@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
+import { hash } from "bcryptjs";
 import { created, badRequest, conflict } from "@/lib/api-response";
+import { prisma } from "@/lib/prisma";
 import type { SignupRequest, SignupResponse } from "@/lib/api-types";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,13 +29,24 @@ export async function POST(request: NextRequest) {
     return badRequest("Password must be at least 8 characters");
   }
 
-  // TODO: Implement with Prisma — create user, hash password, return SignupResponse
-  // For now return 501 so the API contract is in place
+  const normalizedEmail = email.trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  if (existing) return conflict("Email already registered");
+
+  const hashedPassword = await hash(password, 10);
+  const user = await prisma.user.create({
+    data: {
+      email: normalizedEmail,
+      password: hashedPassword,
+      name: typeof name === "string" ? name.trim() || null : null,
+    },
+  });
+
   return created({
     user: {
-      id: "stub-user-id",
-      email: email.trim().toLowerCase(),
-      name: typeof name === "string" ? name.trim() || null : null,
+      id: user.id,
+      email: user.email,
+      name: user.name,
     },
   } satisfies SignupResponse);
 }

@@ -1,6 +1,6 @@
-/**
- * Auth helper for API routes. Replace with getServerSession(authOptions) once NextAuth is configured.
- */
+import { getServerSession } from "next-auth";
+import { authOptions } from "./auth-config";
+
 export type SessionUser = {
   id: string;
   email: string;
@@ -8,6 +8,13 @@ export type SessionUser = {
 };
 
 export async function getSession(): Promise<{ user: SessionUser } | null> {
-  // TODO: Replace with NextAuth getServerSession when Step 2 is implemented
-  return null;
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return null;
+  return {
+    user: {
+      id: session.user.id,
+      email: session.user.email,
+      name: session.user.name ?? null,
+    },
+  };
 }
