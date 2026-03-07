@@ -2,8 +2,9 @@
 
 Small ecommerce app: **login → view products → add to cart → checkout → order history**.
 
+- **docs/API.md** — API specification (contract first; then models/implementation).
+- **STRUCTURE.md** — Repository layout and API-first workflow.
 - **STEPS.md** — Step-by-step build guide (Steps 1–5).
-- **STRUCTURE.md** — Repository layout: where files go and why.
 
 ## Step 1 – Get running
 
