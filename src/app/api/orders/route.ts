@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { json, unauthorized } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
-import type { OrdersListResponse, OrdersQuery } from "@/lib/api-types";
+import { prisma } from "@/lib/prisma";
+import type { OrdersListResponse } from "@/lib/api-types";
 
 const DEFAULT_LIMIT = 20;
 const DEFAULT_OFFSET = 0;
@@ -14,10 +15,25 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Number(searchParams.get("limit")) || DEFAULT_LIMIT, 100);
   const offset = Math.max(0, Number(searchParams.get("offset")) || DEFAULT_OFFSET);
 
-  // TODO: Implement with Prisma — list orders for session.user.id, newest first, with itemCount
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      skip: offset,
+      take: limit,
+      include: { _count: { select: { items: true } } },
+    }),
+    prisma.order.count({ where: { userId: session.user.id } }),
+  ]);
+
   const response: OrdersListResponse = {
-    orders: [],
-    total: 0,
+    orders: orders.map((o) => ({
+      id: o.id,
+      totalCents: o.totalCents,
+      createdAt: o.createdAt.toISOString(),
+      itemCount: o._count.items,
+    })),
+    total,
   };
   return json(response);
 }

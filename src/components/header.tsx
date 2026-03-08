@@ -25,6 +25,12 @@ export function Header() {
           ) : session?.user ? (
             <>
               <CartLink />
+              <Link
+                href="/orders"
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                Orders
+              </Link>
               <span className="text-sm text-gray-600 truncate max-w-[140px]">
                 {session.user.email}
               </span>
