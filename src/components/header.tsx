@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { CartLink } from "./cart-link";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -23,6 +24,7 @@ export function Header() {
             <span className="text-sm text-gray-400">...</span>
           ) : session?.user ? (
             <>
+              <CartLink />
               <span className="text-sm text-gray-600 truncate max-w-[140px]">
                 {session.user.email}
               </span>

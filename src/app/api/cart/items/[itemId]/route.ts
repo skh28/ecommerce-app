@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 import { json, unauthorized, notFound, badRequest } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
-import type { CartResponse, UpdateCartItemRequest } from "@/lib/api-types";
+import { getCartResponse } from "@/lib/cart";
+import { prisma } from "@/lib/prisma";
+import type { UpdateCartItemRequest } from "@/lib/api-types";
 
 type RouteContext = { params: Promise<{ itemId: string }> };
 
@@ -27,12 +29,21 @@ export async function PATCH(
     return badRequest("Quantity must be a non-negative integer");
   }
 
-  // TODO: Implement with Prisma — find cart item by itemId and session.user.id;
-  // if quantity === 0, delete item; else update quantity; return full cart
-  const response: CartResponse = {
-    items: [],
-    totalCents: 0,
-  };
+  const existing = await prisma.cartItem.findFirst({
+    where: { id: itemId, userId: session.user.id },
+  });
+  if (!existing) return notFound("Cart item not found");
+
+  if (quantity === 0) {
+    await prisma.cartItem.delete({ where: { id: itemId } });
+  } else {
+    await prisma.cartItem.update({
+      where: { id: itemId },
+      data: { quantity },
+    });
+  }
+
+  const response = await getCartResponse(session.user.id);
   return json(response);
 }
 
@@ -46,10 +57,13 @@ export async function DELETE(
   const { itemId } = await context.params;
   if (!itemId) return notFound("Cart item not found");
 
-  // TODO: Implement with Prisma — delete cart item, return full cart
-  const response: CartResponse = {
-    items: [],
-    totalCents: 0,
-  };
+  const existing = await prisma.cartItem.findFirst({
+    where: { id: itemId, userId: session.user.id },
+  });
+  if (!existing) return notFound("Cart item not found");
+
+  await prisma.cartItem.delete({ where: { id: itemId } });
+
+  const response = await getCartResponse(session.user.id);
   return json(response);
 }
