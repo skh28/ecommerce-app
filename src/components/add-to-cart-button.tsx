@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { dispatchCartUpdated } from "./cart-link";
 
 type Props = { productId: string; productName: string };
 
@@ -27,6 +28,7 @@ export function AddToCartButton({ productId, productName }: Props) {
         return;
       }
       setAdded(true);
+      dispatchCartUpdated();
     } finally {
       setLoading(false);
     }

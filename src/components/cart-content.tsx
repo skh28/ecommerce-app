@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { CartItemDto } from "@/lib/api-types";
+import { dispatchCartUpdated } from "./cart-link";
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat("en-US", {
@@ -47,6 +48,7 @@ export function CartContent() {
     if (res.ok) {
       const data = await res.json();
       setCart(data);
+      dispatchCartUpdated();
     }
   }
 
@@ -55,6 +57,7 @@ export function CartContent() {
     if (res.ok) {
       const data = await res.json();
       setCart(data);
+      dispatchCartUpdated();
     }
   }
 

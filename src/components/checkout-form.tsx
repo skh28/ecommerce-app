@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CartItemDto } from "@/lib/api-types";
+import { dispatchCartUpdated } from "./cart-link";
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat("en-US", {
@@ -50,6 +51,7 @@ export function CheckoutForm() {
         setSubmitting(false);
         return;
       }
+      dispatchCartUpdated();
       router.push("/orders?placed=1");
     } catch {
       setError("Something went wrong. Please try again.");
