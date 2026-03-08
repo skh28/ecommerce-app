@@ -13,7 +13,6 @@ const products = [
 async function main() {
   await prisma.product.createMany({
     data: products,
-    skipDuplicates: true,
   });
   console.log(`Seeded ${products.length} products.`);
 }
