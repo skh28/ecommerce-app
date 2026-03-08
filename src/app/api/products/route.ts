@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { json } from "@/lib/api-response";
-import type { ProductsListResponse, ProductQuery } from "@/lib/api-types";
+import { getProducts } from "@/lib/products";
+import type { ProductsListResponse } from "@/lib/api-types";
 
 const DEFAULT_LIMIT = 50;
 const DEFAULT_OFFSET = 0;
@@ -10,10 +11,7 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Number(searchParams.get("limit")) || DEFAULT_LIMIT, 100);
   const offset = Math.max(0, Number(searchParams.get("offset")) || DEFAULT_OFFSET);
 
-  // TODO: Implement with Prisma — list products with total count
-  const response: ProductsListResponse = {
-    products: [],
-    total: 0,
-  };
+  const { products, total } = await getProducts(limit, offset);
+  const response: ProductsListResponse = { products, total };
   return json(response);
 }

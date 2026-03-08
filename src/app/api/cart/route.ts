@@ -1,17 +1,31 @@
 import { NextRequest } from "next/server";
 import { json, unauthorized, badRequest, notFound } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import type { CartResponse, AddToCartRequest } from "@/lib/api-types";
+
+async function getCartResponse(userId: string): Promise<CartResponse> {
+  const items = await prisma.cartItem.findMany({
+    where: { userId },
+    include: { product: true },
+  });
+  const cartItems = items.map((item) => ({
+    id: item.id,
+    productId: item.productId,
+    productName: item.product.name,
+    priceCents: item.product.priceCents,
+    quantity: item.quantity,
+    imageUrl: item.product.imageUrl,
+  }));
+  const totalCents = cartItems.reduce((sum, i) => sum + i.priceCents * i.quantity, 0);
+  return { items: cartItems, totalCents };
+}
 
 export async function GET() {
   const session = await getSession();
   if (!session) return unauthorized();
 
-  // TODO: Implement with Prisma — load cart items for session.user.id, include product details
-  const response: CartResponse = {
-    items: [],
-    totalCents: 0,
-  };
+  const response = await getCartResponse(session.user.id);
   return json(response);
 }
 
@@ -34,10 +48,21 @@ export async function POST(request: NextRequest) {
     return badRequest("Quantity must be a positive integer");
   }
 
-  // TODO: Implement with Prisma — find product, upsert cart item, return full cart
-  const response: CartResponse = {
-    items: [],
-    totalCents: 0,
-  };
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product) return notFound("Product not found");
+
+  await prisma.cartItem.upsert({
+    where: {
+      userId_productId: { userId: session.user.id, productId },
+    },
+    create: {
+      userId: session.user.id,
+      productId,
+      quantity,
+    },
+    update: { quantity: { increment: quantity } },
+  });
+
+  const response = await getCartResponse(session.user.id);
   return json(response);
 }
