@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ProductDto } from "@/lib/api-types";
 import { AddToCartButton } from "./add-to-cart-button";
 
-type Props = { products: ProductDto[] };
+type Props = { products: ProductDto[]; searchQuery?: string };
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat("en-US", {
@@ -14,14 +14,20 @@ function formatPrice(cents: number) {
   }).format(cents / 100);
 }
 
-export function ProductGrid({ products }: Props) {
+export function ProductGrid({ products, searchQuery }: Props) {
   const { status } = useSession();
   const isLoggedIn = status === "authenticated";
 
   if (products.length === 0) {
     return (
       <p className="text-gray-500 text-center py-12">
-        No products yet. Run <code className="bg-gray-100 px-1 rounded">npm run db:seed</code> to add sample products.
+        {searchQuery
+          ? "No products match your search. Try a different term or clear the search."
+          : "No products yet. Run "}
+        {!searchQuery && (
+          <code className="bg-gray-100 px-1 rounded">npm run db:seed</code>
+        )}
+        {!searchQuery && " to add sample products."}
       </p>
     );
   }
